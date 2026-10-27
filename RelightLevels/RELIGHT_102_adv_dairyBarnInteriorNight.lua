@@ -39,12 +39,22 @@ RELIGHT_ApplySceneSettings = function(agent_sceneAgent)
     AgentSetProperty(agent_sceneAgent, "LightEnv Shadow Light Bleed Reduction", 0.8);
 end
 
---Color grade for the scene class: a light tint plus a slightly lower black point.
+--Color grade for the scene class. The scene's own tint is blended halfway to the class tint, so the
+--original art direction stays; the opacity is the higher of the two.
 RELIGHT_AUTO_ApplyColorGrading = function(agent_sceneAgent)
+    local color_grade = Color(0.62, 0.75, 1.0, 1);
+    local color_tint = Color(1, 1, 1, 1);
+    local number_opacity = 0;
+
+    if AgentGetProperty(agent_sceneAgent, "FX Color Enabled") == true then
+        color_tint = AgentGetProperty(agent_sceneAgent, "FX Color Tint") or color_tint;
+        number_opacity = AgentGetProperty(agent_sceneAgent, "FX Color Opacity") or 0;
+    end
+
     AgentSetProperty(agent_sceneAgent, "FX Color Enabled", true);
-    AgentSetProperty(agent_sceneAgent, "FX Color Tint", Color(0.62, 0.75, 1.0, 1));
-    AgentSetProperty(agent_sceneAgent, "FX Color Opacity", 0.12);
-    AgentSetProperty(agent_sceneAgent, "FX Levels Black Point", 0.03);
+    AgentSetProperty(agent_sceneAgent, "FX Color Tint", Color((color_tint.r + color_grade.r) / 2, (color_tint.g + color_grade.g) / 2, (color_tint.b + color_grade.b) / 2, 1));
+    AgentSetProperty(agent_sceneAgent, "FX Color Opacity", math.max(number_opacity, 0.12));
+    AgentSetProperty(agent_sceneAgent, "FX Levels Black Point", 0.01);
 end
 
 --Fog stays as the original scene has it.
@@ -200,9 +210,6 @@ RELIGHT_DOF_AUTOFOCUS_BokehSettings =
 local RELIGHT_AUTO_SunLight = nil;
 local RELIGHT_AUTO_LensFlareActive = false;
 
---Relight Camera Particles
-RELIGHT_CameraParticles_PropFile = "fx_camDustMotes.prop";
-
 --Relight Volumetrics
 RELIGHT_HackyCameraVolumetrics_Settings =
 {
@@ -230,9 +237,7 @@ local RELIGHT_GenerateNewINI_LevelPreset = function(number_configurationVersion)
             EnableDepthOfField = true,
             EnableVolumetricLighting = true,
             EnableColorGrading = true,
-            EnableFilmGrain = true,
             EnableLensFlare = false,
-            EnableCameraParticles = true,
             ExposureOffset = 0.0,
             DepthOfFieldAperture = 2.0,
         },
@@ -273,20 +278,12 @@ RELIGHT_SceneStart = function()
         end
     end
 
-    if RELIGHT_AUTO_Enabled("EnableFilmGrain") then
-        AgentSetProperty(RELIGHT_SceneObjectAgentName, "FX Noise Scale", 1.5);
-    end
-
     if RELIGHT_AUTO_Enabled("EnableLensFlare") and (RELIGHT_AUTO_SunLight ~= nil) and (AgentFindInScene(RELIGHT_AUTO_SunLight, RELIGHT_SceneObject) ~= nil) then
         LensFlareEffect_FlareInstances = {};
         LensFlareEffect_SourcesCount = 1;
         LensFlareEffect_Sources = { Source1 = { LightAgentName = RELIGHT_AUTO_SunLight, LightOcclusionAngle = -0.25, LightIntensityModifier = 1.0 } };
         RELIGHT_LensFlareEffect_Initalize();
         RELIGHT_AUTO_LensFlareActive = true;
-    end
-
-    if RELIGHT_AUTO_Enabled("EnableCameraParticles") then
-        RELIGHT_CameraParticles_Initalize();
     end
 
     if RELIGHT_AUTO_Enabled("EnableDepthOfField") then
@@ -320,9 +317,5 @@ RELIGHT_SceneUpdate = function()
 
     if RELIGHT_AUTO_LensFlareActive then
         RELIGHT_LensFlareEffect_Update();
-    end
-
-    if RELIGHT_AUTO_Enabled("EnableCameraParticles") then
-        RELIGHT_CameraParticles_Update();
     end
 end

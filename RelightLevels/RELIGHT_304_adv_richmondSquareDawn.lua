@@ -11,40 +11,38 @@ RELIGHT_TransformAgentsInScene = function(string_scene) end
 RELIGHT_ApplySceneSettings = function(agent_sceneAgent)
     AgentSetProperty(agent_sceneAgent, "FX anti-aliasing", true);
     AgentSetProperty(agent_sceneAgent, "FX TAA Weight", 0.1);
-    AgentSetProperty(agent_sceneAgent, "FX Levels Enabled", true);
     AgentSetProperty(agent_sceneAgent, "FX Sharp Shadows Enabled", true);
     AgentSetProperty(agent_sceneAgent, "HBAO Enabled", true);
     AgentSetProperty(agent_sceneAgent, "FX Tonemap Enabled", true);
-    AgentSetProperty(agent_sceneAgent, "FX Tonemap Type", 2);
     AgentSetProperty(agent_sceneAgent, "FX Vignette Tint Enabled", true);
     AgentSetProperty(agent_sceneAgent, "FX Vignette Tint", Color(0, 0, 0, 1));
-    AgentSetProperty(agent_sceneAgent, "FX Levels White Point", 0.72);
-    AgentSetProperty(agent_sceneAgent, "FX Bloom Threshold", -0.35);
-    AgentSetProperty(agent_sceneAgent, "FX Bloom Intensity", 0.22);
-    AgentSetProperty(agent_sceneAgent, "FX Tonemap Intensity", 9.28);
-    AgentSetProperty(agent_sceneAgent, "FX Tonemap White Point", 126.36);
-    AgentSetProperty(agent_sceneAgent, "FX Tonemap Black Point", -0.21);
-    AgentSetProperty(agent_sceneAgent, "FX Tonemap Filmic Pivot", 0.02);
-    AgentSetProperty(agent_sceneAgent, "FX Tonemap Filmic Sign", 0.14);
-    AgentSetProperty(agent_sceneAgent, "FX Tonemap Filmic Shoulder Intensity", 1.11);
-    AgentSetProperty(agent_sceneAgent, "FX Tonemap Filmic Toe Intensity", 0.53);
-    AgentSetProperty(agent_sceneAgent, "FX Tonemap Far Filmic Pivot", 0.59);
-    AgentSetProperty(agent_sceneAgent, "FX Vignette Falloff", 0.85);
-    AgentSetProperty(agent_sceneAgent, "FX Vignette Center", -0.13);
-    AgentSetProperty(agent_sceneAgent, "FX Vignette Corners", 1.03);
-    AgentSetProperty(agent_sceneAgent, "HBAO Intensity", 1.92);
-    AgentSetProperty(agent_sceneAgent, "HBAO Radius", 2);
-    AgentSetProperty(agent_sceneAgent, "HBAO Max Radius Percent", 0.11);
-    AgentSetProperty(agent_sceneAgent, "HBAO Hemisphere Bias", 0.04);
-    AgentSetProperty(agent_sceneAgent, "LightEnv Shadow Light Bleed Reduction", 0.84);
+    AgentSetProperty(agent_sceneAgent, "FX Bloom Threshold", 0.6);
+    AgentSetProperty(agent_sceneAgent, "FX Bloom Intensity", 0.12);
+    AgentSetProperty(agent_sceneAgent, "FX Vignette Falloff", 1.2);
+    AgentSetProperty(agent_sceneAgent, "FX Vignette Center", 0);
+    AgentSetProperty(agent_sceneAgent, "FX Vignette Corners", 0.95);
+    AgentSetProperty(agent_sceneAgent, "HBAO Intensity", 1.6);
+    AgentSetProperty(agent_sceneAgent, "HBAO Radius", 1);
+    AgentSetProperty(agent_sceneAgent, "HBAO Max Radius Percent", 0.15);
+    AgentSetProperty(agent_sceneAgent, "HBAO Hemisphere Bias", 0.05);
 end
 
---Color grade for the scene class: a light tint plus a slightly lower black point.
+--Color grade for the scene class. The scene's own tint is blended halfway to the class tint, so the
+--original art direction stays; the opacity is the higher of the two.
 RELIGHT_AUTO_ApplyColorGrading = function(agent_sceneAgent)
+    local color_grade = Color(1.0, 0.78, 0.55, 1);
+    local color_tint = Color(1, 1, 1, 1);
+    local number_opacity = 0;
+
+    if AgentGetProperty(agent_sceneAgent, "FX Color Enabled") == true then
+        color_tint = AgentGetProperty(agent_sceneAgent, "FX Color Tint") or color_tint;
+        number_opacity = AgentGetProperty(agent_sceneAgent, "FX Color Opacity") or 0;
+    end
+
     AgentSetProperty(agent_sceneAgent, "FX Color Enabled", true);
-    AgentSetProperty(agent_sceneAgent, "FX Color Tint", Color(1.0, 0.78, 0.55, 1));
-    AgentSetProperty(agent_sceneAgent, "FX Color Opacity", 0.12);
-    AgentSetProperty(agent_sceneAgent, "FX Levels Black Point", 0.02);
+    AgentSetProperty(agent_sceneAgent, "FX Color Tint", Color((color_tint.r + color_grade.r) / 2, (color_tint.g + color_grade.g) / 2, (color_tint.b + color_grade.b) / 2, 1));
+    AgentSetProperty(agent_sceneAgent, "FX Color Opacity", math.max(number_opacity, 0.12));
+    AgentSetProperty(agent_sceneAgent, "FX Levels Black Point", 0.01);
 end
 
 --Fog stays as the original scene has it.
@@ -255,9 +253,6 @@ RELIGHT_DOF_AUTOFOCUS_BokehSettings =
 local RELIGHT_AUTO_SunLight = "light_ENV_DIR_SunKey";
 local RELIGHT_AUTO_LensFlareActive = false;
 
---Relight Camera Particles
-RELIGHT_CameraParticles_PropFile = "";
-
 --Relight Volumetrics
 RELIGHT_HackyCameraVolumetrics_Settings =
 {
@@ -285,9 +280,7 @@ local RELIGHT_GenerateNewINI_LevelPreset = function(number_configurationVersion)
             EnableDepthOfField = true,
             EnableVolumetricLighting = true,
             EnableColorGrading = true,
-            EnableFilmGrain = true,
             EnableLensFlare = true,
-            EnableCameraParticles = false,
             ExposureOffset = 0.0,
             DepthOfFieldAperture = 4.0,
         },
@@ -328,20 +321,12 @@ RELIGHT_SceneStart = function()
         end
     end
 
-    if RELIGHT_AUTO_Enabled("EnableFilmGrain") then
-        AgentSetProperty(RELIGHT_SceneObjectAgentName, "FX Noise Scale", 1.5);
-    end
-
     if RELIGHT_AUTO_Enabled("EnableLensFlare") and (RELIGHT_AUTO_SunLight ~= nil) and (AgentFindInScene(RELIGHT_AUTO_SunLight, RELIGHT_SceneObject) ~= nil) then
         LensFlareEffect_FlareInstances = {};
         LensFlareEffect_SourcesCount = 1;
         LensFlareEffect_Sources = { Source1 = { LightAgentName = RELIGHT_AUTO_SunLight, LightOcclusionAngle = -0.25, LightIntensityModifier = 1.0 } };
         RELIGHT_LensFlareEffect_Initalize();
         RELIGHT_AUTO_LensFlareActive = true;
-    end
-
-    if RELIGHT_AUTO_Enabled("EnableCameraParticles") then
-        RELIGHT_CameraParticles_Initalize();
     end
 
     if RELIGHT_AUTO_Enabled("EnableDepthOfField") then
@@ -373,9 +358,5 @@ RELIGHT_SceneUpdate = function()
 
     if RELIGHT_AUTO_LensFlareActive then
         RELIGHT_LensFlareEffect_Update();
-    end
-
-    if RELIGHT_AUTO_Enabled("EnableCameraParticles") then
-        RELIGHT_CameraParticles_Update();
     end
 end
