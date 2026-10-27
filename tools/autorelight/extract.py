@@ -93,6 +93,8 @@ def main():
         folder = extract_scenes(data_folder)
         scene = re.sub(r"\.scene$", "", scene)
         matches = [p for p in folder.glob("*.scene") if p.stem.lower() == scene.lower()]
+        if not matches:  # some scenes are shipped in another episode's archive
+            matches = [p for p in CACHE_DIR.glob("*/*.scene") if p.stem.lower() == scene.lower()]
         if not matches:
             missing.append(f"{script}: scene {scene}.scene not in {data_folder}")
             continue
