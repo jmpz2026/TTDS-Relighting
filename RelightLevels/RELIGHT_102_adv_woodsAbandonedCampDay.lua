@@ -39,6 +39,14 @@ RELIGHT_ApplySceneSettings = function(agent_sceneAgent)
     AgentSetProperty(agent_sceneAgent, "LightEnv Shadow Light Bleed Reduction", 0.84);
 end
 
+--Color grade for the scene class: a light tint plus a slightly lower black point.
+RELIGHT_AUTO_ApplyColorGrading = function(agent_sceneAgent)
+    AgentSetProperty(agent_sceneAgent, "FX Color Enabled", true);
+    AgentSetProperty(agent_sceneAgent, "FX Color Tint", Color(1.0, 0.98, 0.95, 1));
+    AgentSetProperty(agent_sceneAgent, "FX Color Opacity", 0.05);
+    AgentSetProperty(agent_sceneAgent, "FX Levels Black Point", 0.01);
+end
+
 --Fog stays as the original scene has it.
 RELIGHT_ApplyEnvironmentFogSettings = function(string_scene) end
 
@@ -143,6 +151,13 @@ RELIGHT_DOF_AUTOFOCUS_BokehSettings =
     MaxBokehBufferAmount = 1.0,
 };
 
+--Relight Lens Flare (only used when the scene has a sun light: light_Directional)
+local RELIGHT_AUTO_SunLight = "light_Directional";
+local RELIGHT_AUTO_LensFlareActive = false;
+
+--Relight Camera Particles
+RELIGHT_CameraParticles_PropFile = "fx_camPollen.prop";
+
 --Relight Volumetrics
 RELIGHT_HackyCameraVolumetrics_Settings =
 {
@@ -168,7 +183,11 @@ local RELIGHT_GenerateNewINI_LevelPreset = function(number_configurationVersion)
         {
             EnableRelighting = true,
             EnableDepthOfField = true,
-            EnableVolumetricLighting = false,
+            EnableVolumetricLighting = true,
+            EnableColorGrading = true,
+            EnableFilmGrain = true,
+            EnableLensFlare = true,
+            EnableCameraParticles = true,
             ExposureOffset = 0.0,
             DepthOfFieldAperture = 4.0,
         },
@@ -190,16 +209,42 @@ do --DONT TOUCH THIS CHUNK OF CODE (UNLESS YOU KNOW WHAT YOU ARE DOING)
     end
 end
 
+--An effect runs only when the global switch (RelightConfiguration_Main.ini, Options > Relight menu)
+--and the switch in this level .ini are both on.
+local RELIGHT_AUTO_Enabled = function(string_key)
+    return (RelightConfigGlobal[string_key] ~= false) and (RelightConfigData_LevelPreset["Main"][string_key] == true);
+end
+
 --|||||||||||||||||||||||||||||||||||||||||||||||| RELIGHT SCENE MAIN ||||||||||||||||||||||||||||||||||||||||||||||||
 --(DO NOT CHANGE FUNCTION NAME OR ADD PARAMETERS) Called at the start of the level by the relight backend.
 RELIGHT_SceneStart = function()
-    if(RelightConfigData_LevelPreset["Main"]["EnableRelighting"] == true) then
+    if RELIGHT_AUTO_Enabled("EnableRelighting") then
         RELIGHT_ApplySceneSettings(RELIGHT_SceneObjectAgentName);
         RELIGHT_ApplyEnvironmentFogSettings(RELIGHT_SceneObject);
         RELIGHT_ApplyLightingSettings(RELIGHT_SceneObject);
+
+        if RELIGHT_AUTO_Enabled("EnableColorGrading") then
+            RELIGHT_AUTO_ApplyColorGrading(RELIGHT_SceneObjectAgentName);
+        end
     end
 
-    if(RelightConfigData_LevelPreset["Main"]["EnableDepthOfField"]) then
+    if RELIGHT_AUTO_Enabled("EnableFilmGrain") then
+        AgentSetProperty(RELIGHT_SceneObjectAgentName, "FX Noise Scale", 1.5);
+    end
+
+    if RELIGHT_AUTO_Enabled("EnableLensFlare") and (RELIGHT_AUTO_SunLight ~= nil) and (AgentFindInScene(RELIGHT_AUTO_SunLight, RELIGHT_SceneObject) ~= nil) then
+        LensFlareEffect_FlareInstances = {};
+        LensFlareEffect_SourcesCount = 1;
+        LensFlareEffect_Sources = { Source1 = { LightAgentName = RELIGHT_AUTO_SunLight, LightOcclusionAngle = -0.25, LightIntensityModifier = 1.0 } };
+        RELIGHT_LensFlareEffect_Initalize();
+        RELIGHT_AUTO_LensFlareActive = true;
+    end
+
+    if RELIGHT_AUTO_Enabled("EnableCameraParticles") then
+        RELIGHT_CameraParticles_Initalize();
+    end
+
+    if RELIGHT_AUTO_Enabled("EnableDepthOfField") then
 
         for _, string_name in ipairs(RELIGHT_DOF_AUTOFOCUS_ObjectEntries) do
             RELIGHT_DepthOfField_AddFocusTarget(string_name);
@@ -209,7 +254,7 @@ RELIGHT_SceneStart = function()
         RELIGHT_DOF_AUTOFOCUS_Aperture = RelightConfigData_LevelPreset["Main"]["DepthOfFieldAperture"];
     end
 
-    if(RelightConfigData_LevelPreset["Main"]["EnableVolumetricLighting"]) then
+    if RELIGHT_AUTO_Enabled("EnableVolumetricLighting") then
         RELIGHT_HackyCameraVolumetrics_Initalize();
     end
 
@@ -218,11 +263,19 @@ end
 
 --(DO NOT CHANGE FUNCTION NAME OR ADD PARAMETERS) Called every frame after the start of the level.
 RELIGHT_SceneUpdate = function()
-    if(RelightConfigData_LevelPreset["Main"]["EnableDepthOfField"]) then
+    if RELIGHT_AUTO_Enabled("EnableDepthOfField") then
         RELIGHT_DepthOfField_Update();
     end
 
-    if(RelightConfigData_LevelPreset["Main"]["EnableVolumetricLighting"]) then
+    if RELIGHT_AUTO_Enabled("EnableVolumetricLighting") then
         RELIGHT_HackyCameraVolumetrics_Update();
+    end
+
+    if RELIGHT_AUTO_LensFlareActive then
+        RELIGHT_LensFlareEffect_Update();
+    end
+
+    if RELIGHT_AUTO_Enabled("EnableCameraParticles") then
+        RELIGHT_CameraParticles_Update();
     end
 end
