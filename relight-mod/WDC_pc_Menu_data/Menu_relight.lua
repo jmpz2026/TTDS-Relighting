@@ -1,6 +1,6 @@
 --Relight submenu: Options > Audio/Display > Relight.
 --Reads and writes RelightMod/RelightConfiguration_Main.ini (the [Global] section), the same file the
---relight backend loads at the start of every scene. Changes are saved when the menu closes and apply on the
+--relight backend loads at the start of every scene. Each change is saved at once and applies on the
 --next scene load (render scale also applies at once).
 require("Utilities.lua")
 require("UI_ListToggle.lua")
@@ -26,7 +26,6 @@ local mEffectEntries =
     { "EnableRelighting", "Relighting", ON_OFF, LABELS_ON_OFF },
     { "EnableColorGrading", "Color Grading", ON_OFF, LABELS_ON_OFF },
     { "EnableLensFlare", "Lens Flare", ON_OFF, LABELS_ON_OFF },
-    { "EnableCameraParticles", "Ambient Particles", ON_OFF, LABELS_ON_OFF },
     { "EnableVolumetricLighting", "Volumetric Lighting (slow)", ON_OFF, LABELS_ON_OFF },
     { "EnableDepthOfField", "Depth of Field Autofocus", ON_OFF, LABELS_ON_OFF },
     { "HighQualityDepthOfField", "High Quality Depth of Field", ON_OFF, LABELS_ON_OFF },
@@ -37,7 +36,6 @@ local mCinematicEntries =
 {
     { "DisableFog", "Fog", OFF_ON, LABELS_ON_OFF },
     { "CinematicMode", "Letterbox", ON_OFF, LABELS_ON_OFF },
-    { "EnableFilmGrain", "Film Grain", ON_OFF, LABELS_ON_OFF },
     { "BlackAndWhiteMode", "Black and White", ON_OFF, LABELS_ON_OFF },
     { "ForceVignetteOff", "Vignette", OFF_ON, LABELS_ON_OFF },
     { "ForceBloomOff", "Bloom", OFF_ON, LABELS_ON_OFF },
@@ -134,6 +132,7 @@ local OpenPage = function(string_title, entries, bLinkCinematic)
                 if mConfig["Global"][key] ~= value then
                     mConfig["Global"][key] = value;
                     mbDirty = true;
+                    SaveConfig();
 
                     if key == "RenderScale" then
                         RenderSetScale(value);

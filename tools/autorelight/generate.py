@@ -35,7 +35,8 @@ def lua_bool(value):
 
 
 def scene_settings(preset):
-    lines = [f'    AgentSetProperty(agent_sceneAgent, "{k}", {v});' for k, v in {**rules.BASE_SCENE, **preset}.items()]
+    lines = [f'    AgentSetProperty(agent_sceneAgent, "{k}", {v});' for k, v in {**rules.BASE_SCENE, **preset}.items()
+             if v is not None]
     return "\n".join(lines)
 
 
@@ -71,11 +72,21 @@ RELIGHT_ApplySceneSettings = function(agent_sceneAgent)
 {scene_settings}
 end
 
---Color grade for the scene class: a light tint plus a slightly lower black point.
+--Color grade for the scene class. The scene's own tint is blended halfway to the class tint, so the
+--original art direction stays; the opacity is the higher of the two.
 RELIGHT_AUTO_ApplyColorGrading = function(agent_sceneAgent)
+    local color_grade = {grade_tint};
+    local color_tint = Color(1, 1, 1, 1);
+    local number_opacity = 0;
+
+    if AgentGetProperty(agent_sceneAgent, "FX Color Enabled") == true then
+        color_tint = AgentGetProperty(agent_sceneAgent, "FX Color Tint") or color_tint;
+        number_opacity = AgentGetProperty(agent_sceneAgent, "FX Color Opacity") or 0;
+    end
+
     AgentSetProperty(agent_sceneAgent, "FX Color Enabled", true);
-    AgentSetProperty(agent_sceneAgent, "FX Color Tint", {grade_tint});
-    AgentSetProperty(agent_sceneAgent, "FX Color Opacity", {grade_opacity});
+    AgentSetProperty(agent_sceneAgent, "FX Color Tint", Color((color_tint.r + color_grade.r) / 2, (color_tint.g + color_grade.g) / 2, (color_tint.b + color_grade.b) / 2, 1));
+    AgentSetProperty(agent_sceneAgent, "FX Color Opacity", math.max(number_opacity, {grade_opacity}));
     AgentSetProperty(agent_sceneAgent, "FX Levels Black Point", {grade_black});
 end
 
@@ -156,9 +167,6 @@ RELIGHT_DOF_AUTOFOCUS_BokehSettings =
 local RELIGHT_AUTO_SunLight = {sun_lua};
 local RELIGHT_AUTO_LensFlareActive = false;
 
---Relight Camera Particles
-RELIGHT_CameraParticles_PropFile = "{particles_prop}";
-
 --Relight Volumetrics
 RELIGHT_HackyCameraVolumetrics_Settings =
 {{
@@ -186,9 +194,7 @@ local RELIGHT_GenerateNewINI_LevelPreset = function(number_configurationVersion)
             EnableDepthOfField = true,
             EnableVolumetricLighting = true,
             EnableColorGrading = true,
-            EnableFilmGrain = true,
             EnableLensFlare = {lens_flare},
-            EnableCameraParticles = {particles},
             ExposureOffset = 0.0,
             DepthOfFieldAperture = {aperture},
         }},
@@ -229,20 +235,12 @@ RELIGHT_SceneStart = function()
         end
     end
 
-    if RELIGHT_AUTO_Enabled("EnableFilmGrain") then
-        AgentSetProperty(RELIGHT_SceneObjectAgentName, "FX Noise Scale", {grain});
-    end
-
     if RELIGHT_AUTO_Enabled("EnableLensFlare") and (RELIGHT_AUTO_SunLight ~= nil) and (AgentFindInScene(RELIGHT_AUTO_SunLight, RELIGHT_SceneObject) ~= nil) then
         LensFlareEffect_FlareInstances = {{}};
         LensFlareEffect_SourcesCount = 1;
         LensFlareEffect_Sources = {{ Source1 = {{ LightAgentName = RELIGHT_AUTO_SunLight, LightOcclusionAngle = -0.25, LightIntensityModifier = 1.0 }} }};
         RELIGHT_LensFlareEffect_Initalize();
         RELIGHT_AUTO_LensFlareActive = true;
-    end
-
-    if RELIGHT_AUTO_Enabled("EnableCameraParticles") then
-        RELIGHT_CameraParticles_Initalize();
     end
 
     if RELIGHT_AUTO_Enabled("EnableDepthOfField") then
@@ -275,10 +273,6 @@ RELIGHT_SceneUpdate = function()
     if RELIGHT_AUTO_LensFlareActive then
         RELIGHT_LensFlareEffect_Update();
     end
-
-    if RELIGHT_AUTO_Enabled("EnableCameraParticles") then
-        RELIGHT_CameraParticles_Update();
-    end
 end
 """
 
@@ -299,11 +293,9 @@ def render(record, cls):
     stem = record["lua_file"][:-len(".lua")]
     grade_tint, grade_opacity, grade_black = rules.GRADING[time]
     sun = rules.sun_light(record["lights"]) if space == "exterior" and time in rules.LENS_FLARE_TIMES else None
-    particles_prop = rules.particles_for(record["scene"], space, time)
     return TEMPLATE.format(
-        grade_tint=grade_tint, grade_opacity=grade_opacity, grade_black=grade_black, grain=rules.FILM_GRAIN_SCALE,
+        grade_tint=grade_tint, grade_opacity=grade_opacity, grade_black=grade_black,
         sun_light=sun or "none", sun_lua=f'"{sun}"' if sun else "nil", lens_flare=lua_bool(sun is not None),
-        particles_prop=particles_prop or "", particles=lua_bool(particles_prop is not None),
         marker=AUTO_MARKER, scene=record["scene"], space=space, time=time,
         scene_settings=scene_settings(preset), lights=light_table(record["lights"] + [
             a for a in record["agents"] if "lightshape" in a.lower() and a not in record["lights"]]),

@@ -21,5 +21,4 @@ require("RELIGHT_Effect_HackyLocalVolumetrics.lua");
 require("RELIGHT_Effect_LensFlare.lua");
 require("RELIGHT_Effect_ProcedualGrass.lua");
 require("RELIGHT_Effect_Letterboxing.lua");
-require("RELIGHT_Effect_CameraParticles.lua");
 require("RELIGHT_GlobalAdjustments.lua");

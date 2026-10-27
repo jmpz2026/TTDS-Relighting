@@ -33,9 +33,7 @@ RELIGHT_GenerateNewINI_Main = function(number_configurationVersion)
             EnableDepthOfField = true,
             EnableVolumetricLighting = false,
             EnableColorGrading = true,
-            EnableFilmGrain = false,
             EnableLensFlare = true,
-            EnableCameraParticles = false,
         },
     };
         
