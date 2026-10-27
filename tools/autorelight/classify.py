@@ -22,8 +22,13 @@ EXTERIOR_WORDS = ["exterior", "outside", "outskirts", "street", "woods", "forest
                   "yard", "bridge", "river", "camp", "clearing", "highway", "porch", "roof", "dock", "courtyard",
                   "town", "square", "walls", "fence", "lake", "trainyard", "overlook", "hill", "tower", "truckstop",
                   "reststop", "gate", "underpass", "overpass", "deck", "wellington", "cages", "lawn", "shore"]
-NIGHT_WORDS = ["night", "dark", "evening", "dusk"]
-SNOW_WORDS = ["snow", "snowy", "winter", "frozen", "ice"]
+# Time classes, first match wins: fire, snow, dark, night, dusk, rain, else day.
+FIRE_WORDS = ["fire", "campfire", "burning", "burn"]
+SNOW_WORDS = ["snow", "snowy", "winter", "frozen", "ice", "snowstorm"]
+DARK_WORDS = ["cave", "sewer", "sewers", "basement", "cellar", "tunnel"]
+NIGHT_WORDS = ["night", "dark"]
+DUSK_WORDS = ["dusk", "dawn", "evening", "afternoon", "sunset", "sunrise", "morning"]
+RAIN_WORDS = ["rain", "rainy", "storm"]
 
 
 def words(name):
@@ -39,13 +44,11 @@ def guess(scene):
         space = "interior"
     else:
         space = "exterior"
-    if tokens & set(SNOW_WORDS):
-        time = "snow"
-    elif tokens & set(NIGHT_WORDS):
-        time = "night"
-    else:
-        time = "day"
-    return space, time
+    for time, vocabulary in [("fire", FIRE_WORDS), ("snow", SNOW_WORDS), ("dark", DARK_WORDS),
+                             ("night", NIGHT_WORDS), ("dusk", DUSK_WORDS), ("rain", RAIN_WORDS)]:
+        if tokens & set(vocabulary):
+            return space, time
+    return space, "day"
 
 
 def load_overrides():

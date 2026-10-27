@@ -15,7 +15,7 @@ RELIGHT_GenerateNewINI_Main = function(number_configurationVersion)
             FOVMultiplier = 1.0, 
             MotionBlurIntensity = 25.0,
             RenderScale = 1.0,
-            DisableOutlines = false,
+            DisableOutlines = true,
             DisablePostProcessing = false,
 			DisableFog = false,
             CinematicMode = false,
@@ -27,6 +27,15 @@ RELIGHT_GenerateNewINI_Main = function(number_configurationVersion)
             ForceBloomOff = false,
             EnableMotionBlur = false,
             ForceVignetteOff = false,
+            --Master switches, also set from the in-game Options > Relight menu. A level effect runs only
+            --when both this switch and the level .ini switch are on.
+            EnableRelighting = true,
+            EnableDepthOfField = true,
+            EnableVolumetricLighting = false,
+            EnableColorGrading = true,
+            EnableFilmGrain = false,
+            EnableLensFlare = true,
+            EnableCameraParticles = false,
         },
     };
         

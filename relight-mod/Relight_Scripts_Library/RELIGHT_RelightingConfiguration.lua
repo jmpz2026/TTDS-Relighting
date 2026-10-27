@@ -1,5 +1,5 @@
 --current config version
-RELIGHT_CurrentConfigurationVersion = 100;
+RELIGHT_CurrentConfigurationVersion = 101;
 
 --relight config file names
 RELIGHT_BaseFolderName = "RelightMod";

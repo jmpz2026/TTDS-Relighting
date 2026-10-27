@@ -30,6 +30,10 @@ def lua_string_list(items, indent="    "):
     return "\n".join(f'{indent}"{item}",' for item in items)
 
 
+def lua_bool(value):
+    return "true" if value else "false"
+
+
 def scene_settings(preset):
     lines = [f'    AgentSetProperty(agent_sceneAgent, "{k}", {v});' for k, v in {**rules.BASE_SCENE, **preset}.items()]
     return "\n".join(lines)
@@ -65,6 +69,14 @@ RELIGHT_TransformAgentsInScene = function(string_scene) end
 
 RELIGHT_ApplySceneSettings = function(agent_sceneAgent)
 {scene_settings}
+end
+
+--Color grade for the scene class: a light tint plus a slightly lower black point.
+RELIGHT_AUTO_ApplyColorGrading = function(agent_sceneAgent)
+    AgentSetProperty(agent_sceneAgent, "FX Color Enabled", true);
+    AgentSetProperty(agent_sceneAgent, "FX Color Tint", {grade_tint});
+    AgentSetProperty(agent_sceneAgent, "FX Color Opacity", {grade_opacity});
+    AgentSetProperty(agent_sceneAgent, "FX Levels Black Point", {grade_black});
 end
 
 --Fog stays as the original scene has it.
@@ -140,6 +152,13 @@ RELIGHT_DOF_AUTOFOCUS_BokehSettings =
     MaxBokehBufferAmount = 1.0,
 }};
 
+--Relight Lens Flare (only used when the scene has a sun light: {sun_light})
+local RELIGHT_AUTO_SunLight = {sun_lua};
+local RELIGHT_AUTO_LensFlareActive = false;
+
+--Relight Camera Particles
+RELIGHT_CameraParticles_PropFile = "{particles_prop}";
+
 --Relight Volumetrics
 RELIGHT_HackyCameraVolumetrics_Settings =
 {{
@@ -165,7 +184,11 @@ local RELIGHT_GenerateNewINI_LevelPreset = function(number_configurationVersion)
         {{
             EnableRelighting = true,
             EnableDepthOfField = true,
-            EnableVolumetricLighting = false,
+            EnableVolumetricLighting = true,
+            EnableColorGrading = true,
+            EnableFilmGrain = true,
+            EnableLensFlare = {lens_flare},
+            EnableCameraParticles = {particles},
             ExposureOffset = 0.0,
             DepthOfFieldAperture = {aperture},
         }},
@@ -187,16 +210,42 @@ do --DONT TOUCH THIS CHUNK OF CODE (UNLESS YOU KNOW WHAT YOU ARE DOING)
     end
 end
 
+--An effect runs only when the global switch (RelightConfiguration_Main.ini, Options > Relight menu)
+--and the switch in this level .ini are both on.
+local RELIGHT_AUTO_Enabled = function(string_key)
+    return (RelightConfigGlobal[string_key] ~= false) and (RelightConfigData_LevelPreset["Main"][string_key] == true);
+end
+
 --|||||||||||||||||||||||||||||||||||||||||||||||| RELIGHT SCENE MAIN ||||||||||||||||||||||||||||||||||||||||||||||||
 --(DO NOT CHANGE FUNCTION NAME OR ADD PARAMETERS) Called at the start of the level by the relight backend.
 RELIGHT_SceneStart = function()
-    if(RelightConfigData_LevelPreset["Main"]["EnableRelighting"] == true) then
+    if RELIGHT_AUTO_Enabled("EnableRelighting") then
         RELIGHT_ApplySceneSettings(RELIGHT_SceneObjectAgentName);
         RELIGHT_ApplyEnvironmentFogSettings(RELIGHT_SceneObject);
         RELIGHT_ApplyLightingSettings(RELIGHT_SceneObject);
+
+        if RELIGHT_AUTO_Enabled("EnableColorGrading") then
+            RELIGHT_AUTO_ApplyColorGrading(RELIGHT_SceneObjectAgentName);
+        end
     end
 
-    if(RelightConfigData_LevelPreset["Main"]["EnableDepthOfField"]) then
+    if RELIGHT_AUTO_Enabled("EnableFilmGrain") then
+        AgentSetProperty(RELIGHT_SceneObjectAgentName, "FX Noise Scale", {grain});
+    end
+
+    if RELIGHT_AUTO_Enabled("EnableLensFlare") and (RELIGHT_AUTO_SunLight ~= nil) and (AgentFindInScene(RELIGHT_AUTO_SunLight, RELIGHT_SceneObject) ~= nil) then
+        LensFlareEffect_FlareInstances = {{}};
+        LensFlareEffect_SourcesCount = 1;
+        LensFlareEffect_Sources = {{ Source1 = {{ LightAgentName = RELIGHT_AUTO_SunLight, LightOcclusionAngle = -0.25, LightIntensityModifier = 1.0 }} }};
+        RELIGHT_LensFlareEffect_Initalize();
+        RELIGHT_AUTO_LensFlareActive = true;
+    end
+
+    if RELIGHT_AUTO_Enabled("EnableCameraParticles") then
+        RELIGHT_CameraParticles_Initalize();
+    end
+
+    if RELIGHT_AUTO_Enabled("EnableDepthOfField") then
 {dof_cameras}
         for _, string_name in ipairs(RELIGHT_DOF_AUTOFOCUS_ObjectEntries) do
             RELIGHT_DepthOfField_AddFocusTarget(string_name);
@@ -206,7 +255,7 @@ RELIGHT_SceneStart = function()
         RELIGHT_DOF_AUTOFOCUS_Aperture = RelightConfigData_LevelPreset["Main"]["DepthOfFieldAperture"];
     end
 
-    if(RelightConfigData_LevelPreset["Main"]["EnableVolumetricLighting"]) then
+    if RELIGHT_AUTO_Enabled("EnableVolumetricLighting") then
         RELIGHT_HackyCameraVolumetrics_Initalize();
     end
 
@@ -215,12 +264,20 @@ end
 
 --(DO NOT CHANGE FUNCTION NAME OR ADD PARAMETERS) Called every frame after the start of the level.
 RELIGHT_SceneUpdate = function()
-    if(RelightConfigData_LevelPreset["Main"]["EnableDepthOfField"]) then
+    if RELIGHT_AUTO_Enabled("EnableDepthOfField") then
         RELIGHT_DepthOfField_Update();
     end
 
-    if(RelightConfigData_LevelPreset["Main"]["EnableVolumetricLighting"]) then
+    if RELIGHT_AUTO_Enabled("EnableVolumetricLighting") then
         RELIGHT_HackyCameraVolumetrics_Update();
+    end
+
+    if RELIGHT_AUTO_LensFlareActive then
+        RELIGHT_LensFlareEffect_Update();
+    end
+
+    if RELIGHT_AUTO_Enabled("EnableCameraParticles") then
+        RELIGHT_CameraParticles_Update();
     end
 end
 """
@@ -240,7 +297,13 @@ def render(record, cls):
     nav_cameras = [c for c in record["cameras"] if "nav" in c.lower()]
     dof_cameras = "\n".join(f'        RELIGHT_DepthOfField_AddGameplayCameraName("{c}");' for c in nav_cameras)
     stem = record["lua_file"][:-len(".lua")]
+    grade_tint, grade_opacity, grade_black = rules.GRADING[time]
+    sun = rules.sun_light(record["lights"]) if space == "exterior" and time in rules.LENS_FLARE_TIMES else None
+    particles_prop = rules.particles_for(record["scene"], space, time)
     return TEMPLATE.format(
+        grade_tint=grade_tint, grade_opacity=grade_opacity, grade_black=grade_black, grain=rules.FILM_GRAIN_SCALE,
+        sun_light=sun or "none", sun_lua=f'"{sun}"' if sun else "nil", lens_flare=lua_bool(sun is not None),
+        particles_prop=particles_prop or "", particles=lua_bool(particles_prop is not None),
         marker=AUTO_MARKER, scene=record["scene"], space=space, time=time,
         scene_settings=scene_settings(preset), lights=light_table(record["lights"] + [
             a for a in record["agents"] if "lightshape" in a.lower() and a not in record["lights"]]),

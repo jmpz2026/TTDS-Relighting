@@ -28,9 +28,9 @@ local ApplyFOVAdjustments = function()
 end
 
 local DisablePostOutlines = function()
-    AgentSetProperty(RELIGHT_SceneObjectAgentName, "Generate NPR Lines", RelightConfigGlobal["DisableOutlines"]);
-    AgentSetProperty(RELIGHT_SceneObjectAgentName, "Screen Space Lines - Enabled", RelightConfigGlobal["DisableOutlines"]);
-    RenderSetFeatureEnabled("nprlines", RelightConfigGlobal["DisableOutlines"]);
+    AgentSetProperty(RELIGHT_SceneObjectAgentName, "Generate NPR Lines", not RelightConfigGlobal["DisableOutlines"]);
+    AgentSetProperty(RELIGHT_SceneObjectAgentName, "Screen Space Lines - Enabled", not RelightConfigGlobal["DisableOutlines"]);
+    RenderSetFeatureEnabled("nprlines", not RelightConfigGlobal["DisableOutlines"]);
 end
 
 local DisableFog = function()
