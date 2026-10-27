@@ -1,0 +1,303 @@
+--AUTO-RELIGHT GENERATED FILE (tools/autorelight/generate.py). Scene: adv_crawfordSchoolHallways | class: interior/day
+--Edit tools/autorelight/rules.py or data/scene_classes.csv and regenerate instead of editing this file.
+--To hand-tune this scene, delete the first line of this file so the generator stops overwriting it.
+
+--|||||||||||||||||||||||||||||||||||||||||||||||| SCENE CHANGES ||||||||||||||||||||||||||||||||||||||||||||||||
+--Auto relight never deletes, duplicates or moves agents (that broke progression in 102 Motor Inn).
+RELIGHT_DeleteAgentsInScene = function(string_scene) end
+RELIGHT_DuplicateAgentsInScene = function(string_scene) end
+RELIGHT_TransformAgentsInScene = function(string_scene) end
+
+RELIGHT_ApplySceneSettings = function(agent_sceneAgent)
+    AgentSetProperty(agent_sceneAgent, "FX anti-aliasing", true);
+    AgentSetProperty(agent_sceneAgent, "FX TAA Weight", 0.1);
+    AgentSetProperty(agent_sceneAgent, "FX Levels Enabled", true);
+    AgentSetProperty(agent_sceneAgent, "FX Sharp Shadows Enabled", true);
+    AgentSetProperty(agent_sceneAgent, "HBAO Enabled", true);
+    AgentSetProperty(agent_sceneAgent, "FX Tonemap Enabled", true);
+    AgentSetProperty(agent_sceneAgent, "FX Tonemap Type", 2);
+    AgentSetProperty(agent_sceneAgent, "FX Vignette Tint Enabled", true);
+    AgentSetProperty(agent_sceneAgent, "FX Vignette Tint", Color(0, 0, 0, 1));
+    AgentSetProperty(agent_sceneAgent, "FX Levels White Point", 0.875);
+    AgentSetProperty(agent_sceneAgent, "FX Bloom Threshold", -0.83);
+    AgentSetProperty(agent_sceneAgent, "FX Bloom Intensity", 0.03);
+    AgentSetProperty(agent_sceneAgent, "FX Tonemap Intensity", 0);
+    AgentSetProperty(agent_sceneAgent, "FX Tonemap White Point", 31.25);
+    AgentSetProperty(agent_sceneAgent, "FX Tonemap Black Point", 0);
+    AgentSetProperty(agent_sceneAgent, "FX Tonemap Filmic Pivot", 0.05);
+    AgentSetProperty(agent_sceneAgent, "FX Tonemap Filmic Sign", 1);
+    AgentSetProperty(agent_sceneAgent, "FX Tonemap Filmic Shoulder Intensity", 1.19);
+    AgentSetProperty(agent_sceneAgent, "FX Tonemap Filmic Toe Intensity", 0.46);
+    AgentSetProperty(agent_sceneAgent, "FX Tonemap Far Filmic Pivot", 0.1);
+    AgentSetProperty(agent_sceneAgent, "FX Vignette Falloff", 1.4);
+    AgentSetProperty(agent_sceneAgent, "FX Vignette Center", 0);
+    AgentSetProperty(agent_sceneAgent, "FX Vignette Corners", 0.99);
+    AgentSetProperty(agent_sceneAgent, "HBAO Intensity", 2.22);
+    AgentSetProperty(agent_sceneAgent, "HBAO Radius", 0.43);
+    AgentSetProperty(agent_sceneAgent, "HBAO Max Radius Percent", 0.2);
+    AgentSetProperty(agent_sceneAgent, "HBAO Hemisphere Bias", 0.05);
+    AgentSetProperty(agent_sceneAgent, "LightEnv Shadow Light Bleed Reduction", 0.8);
+end
+
+--Fog stays as the original scene has it.
+RELIGHT_ApplyEnvironmentFogSettings = function(string_scene) end
+
+--Light candidates found in the .scene file, with their rule category. Only agents that are real
+--environment lights (have "EnvLight - Intensity") are changed, and every change is relative to the original value.
+local RELIGHT_AUTO_Lights =
+{
+    { "light_beams_hallnurse", "other" },
+    { "light_beams_center", "other" },
+    { "light_window_spot", "other" },
+    { "light_window_spot04", "other" },
+    { "light_int_bounce", "fill" },
+    { "light_int_bounce01", "fill" },
+    { "light_int_bounce02", "fill" },
+    { "light_int_bounce03", "fill" },
+    { "light_int_bounce05", "fill" },
+    { "light_int_bounce08", "fill" },
+    { "light_int_bounce09", "fill" },
+    { "light_int_bounce11", "fill" },
+    { "light_int_bounce10", "fill" },
+    { "light_int_bounce12", "fill" },
+    { "light_int_bounce13", "fill" },
+    { "light_amb", "other" },
+    { "light_int_bounce14", "fill" },
+    { "light_int_bounce15", "fill" },
+    { "light_int_bounce16", "fill" },
+    { "light_int_bounce17", "fill" },
+    { "light_int_bounce18", "fill" },
+    { "light_skydome", "sun" },
+    { "light_int_bounce19", "fill" },
+    { "light_int_bounce22", "fill" },
+    { "light_int_bounce23", "fill" },
+    { "light_int_bounce24", "fill" },
+    { "light_int_bounce25", "fill" },
+    { "light_shadow04", "other" },
+    { "light_shadow03", "other" },
+    { "light_int_bounce26", "fill" },
+    { "light_int_bounce27", "fill" },
+    { "light_int_bounce21", "fill" },
+    { "light_int_bounce28", "fill" },
+    { "light_shadow02", "other" },
+    { "light_shadow", "other" },
+    { "light_int_bounce31", "fill" },
+    { "light_shadow_nursedor", "other" },
+    { "light_int_bounce04", "fill" },
+    { "light_int_bounce32", "fill" },
+    { "light_window_spot09", "other" },
+    { "light_window_spot11", "other" },
+    { "light_beams_stairs01", "other" },
+    { "light_beams_stairs02", "other" },
+    { "light_beams_center04", "other" },
+    { "light_beams_center05", "other" },
+    { "light_beams_center06", "other" },
+    { "light_beams_center07", "other" },
+    { "light_beams_hallnurse01", "other" },
+    { "light_beams_hallnurse02", "other" },
+    { "light_beams_hallnurse03", "other" },
+    { "light_beams_hallnurse04", "other" },
+    { "light_beams_hallnurse05", "other" },
+    { "light_beams_hallnurse06", "other" },
+    { "light_int_bounce29", "fill" },
+    { "light_int_bounce20", "fill" },
+    { "light_int_bounce33", "fill" },
+    { "light_int_bounce34", "fill" },
+    { "light_int_bounce06", "fill" },
+    { "light_int_bounce07", "fill" },
+    { "light_int_bounce36", "fill" },
+    { "light_int_bounce37", "fill" },
+    { "light_int_bounce35", "fill" },
+    { "light_int_bounce38", "fill" },
+    { "light_int_bounce39", "fill" },
+    { "light_int_bounce_door_chr", "fill" },
+    { "light_amb_fx", "other" },
+    { "light_int_bounce30", "fill" },
+    { "light_ambEnlighten", "other" },
+    { "light_int_bounce40", "fill" },
+    { "light_int_bounce41", "fill" },
+    { "light_int_bounce42", "fill" },
+    { "light_int_bounce43", "fill" },
+    { "light_int_bounce44", "fill" },
+    { "light_ENV_S_shellShadows", "fill" },
+};
+
+local RELIGHT_AUTO_LightSettings =
+{
+    fire = { dimmer = 1.25, warm = 1.08, softness = 0.3 },
+    practical = { dimmer = 1.15, warm = 1.03, softness = 0.5 },
+    sun = { dimmer = 1.0, warm = 1.0, softness = 0.2 },
+    fill = { dimmer = 0.85, warm = 1.0, softness = 0.6 },
+    other = { dimmer = 1.0, warm = 1.0, softness = 0.5 },
+};
+
+RELIGHT_ApplyLightingSettings = function(string_scene)
+    for _, entry in ipairs(RELIGHT_AUTO_Lights) do
+        local agent_light = AgentFindInScene(entry[1], string_scene);
+
+        if (agent_light ~= nil) and AgentHasProperty(agent_light, "EnvLight - Intensity") then
+            local settings = RELIGHT_AUTO_LightSettings[entry[2]];
+
+            local number_dimmer = AgentGetProperty(agent_light, "EnvLight - Intensity Dimmer");
+            if number_dimmer ~= nil then
+                AgentSetProperty(agent_light, "EnvLight - Intensity Dimmer", number_dimmer * settings.dimmer);
+            end
+
+            local color_light = AgentGetProperty(agent_light, "EnvLight - Color");
+            if (color_light ~= nil) and (settings.warm ~= 1.0) then
+                AgentSetProperty(agent_light, "EnvLight - Color", Color(math.min(color_light.r * settings.warm, 1), color_light.g, color_light.b / settings.warm, color_light.a));
+            end
+
+            local number_shadowType = AgentGetProperty(agent_light, "EnvLight - Shadow Type");
+            if (number_shadowType ~= nil) and (number_shadowType ~= 0) then
+                AgentSetProperty(agent_light, "EnvLight - Shadow Softness", settings.softness);
+            end
+        end
+    end
+end
+
+--|||||||||||||||||||||||||||||||||||||||||||||||| ADDITIONAL LOGIC ||||||||||||||||||||||||||||||||||||||||||||||||
+--Relight Depth of Field Autofocus
+RELIGHT_DOF_AUTOFOCUS_UseCameraDOF = true;
+RELIGHT_DOF_AUTOFOCUS_UseLegacyDOF = false;
+RELIGHT_DOF_AUTOFOCUS_FocalRange = 0.125;
+RELIGHT_DOF_AUTOFOCUS_Aperture = 2.8;
+RELIGHT_DOF_AUTOFOCUS_GameplayCameraNames =
+{
+  "Null"
+};
+RELIGHT_DOF_AUTOFOCUS_ObjectEntries =
+{
+    "Lee",
+    "Clementine",
+    "Kenny",
+    "Ben",
+    "Christa",
+    "Molly",
+    "Vernon",
+};
+RELIGHT_DOF_AUTOFOCUS_Settings =
+{
+    TargetValidation_IsOnScreen = true,
+    TargetValidation_IsVisible = true,
+    TargetValidation_IsWithinDistance = true,
+    TargetValidation_IsFacingCamera = true,
+    TargetValidation_RejectionAngle = -0.1,
+    TargetValidation_RejectionDistance = 18.5,
+};
+RELIGHT_DOF_AUTOFOCUS_BokehSettings =
+{
+    BokehBrightnessDeltaThreshold = 0.05,
+    BokehBrightnessThreshold = 0.05,
+    BokehBlurThreshold = 0.05,
+    BokehMaxSizeClamp = 0.05,
+    BokehFalloff = 0.75,
+    MaxBokehBufferAmount = 1.0,
+};
+
+--Relight Volumetrics
+RELIGHT_HackyCameraVolumetrics_Settings =
+{
+    Samples = 256,
+    SampleOffset = 0.05,
+    SampleStartOffset = 1.0,
+    FogColor = Color(0.04, 0.04, 0.04, 0.04)
+};
+
+--|||||||||||||||||||||||||||||||||||||||||||||||| RELIGHT SCENE CONFIGURATION INI ||||||||||||||||||||||||||||||||||||||||||||||||
+RELIGHT_ConfigFileName_LevelPreset = RELIGHT_LevelsFolderName .. "/RELIGHT_104_adv_crawfordSchoolHallways.ini";
+RelightConfigData_LevelPreset = nil;
+local RELIGHT_ForceRebuildINI = false;
+
+local RELIGHT_GenerateNewINI_LevelPreset = function(number_configurationVersion)
+    local data =
+    {
+        Version =
+        {
+            ConfigurationVersion = number_configurationVersion,
+        },
+        Main =
+        {
+            EnableRelighting = true,
+            EnableDepthOfField = true,
+            EnableVolumetricLighting = false,
+            ExposureOffset = 0.0,
+            DepthOfFieldAperture = 2.8,
+        },
+    };
+
+    return data;
+end
+
+do --DONT TOUCH THIS CHUNK OF CODE (UNLESS YOU KNOW WHAT YOU ARE DOING)
+    if TLSE_FileExists(RELIGHT_ConfigFileName_LevelPreset) == false then
+        TLSE_INI_SaveINIFile(RELIGHT_ConfigFileName_LevelPreset, RELIGHT_GenerateNewINI_LevelPreset(RELIGHT_CurrentConfigurationVersion));
+    end
+
+    RelightConfigData_LevelPreset = TLSE_INI_LoadINIFile(RELIGHT_ConfigFileName_LevelPreset);
+
+    if (not (RelightConfigData_LevelPreset["Version"]["ConfigurationVersion"] == RELIGHT_CurrentConfigurationVersion)) or (RELIGHT_ForceRebuildINI == true) then
+        TLSE_INI_SaveINIFile(RELIGHT_ConfigFileName_LevelPreset, RELIGHT_GenerateNewINI_LevelPreset(RELIGHT_CurrentConfigurationVersion));
+        RelightConfigData_LevelPreset = TLSE_INI_LoadINIFile(RELIGHT_ConfigFileName_LevelPreset);
+    end
+end
+
+--|||||||||||||||||||||||||||||||||||||||||||||||| RELIGHT SCENE MAIN ||||||||||||||||||||||||||||||||||||||||||||||||
+--(DO NOT CHANGE FUNCTION NAME OR ADD PARAMETERS) Called at the start of the level by the relight backend.
+RELIGHT_SceneStart = function()
+    if(RelightConfigData_LevelPreset["Main"]["EnableRelighting"] == true) then
+        RELIGHT_ApplySceneSettings(RELIGHT_SceneObjectAgentName);
+        RELIGHT_ApplyEnvironmentFogSettings(RELIGHT_SceneObject);
+        RELIGHT_ApplyLightingSettings(RELIGHT_SceneObject);
+    end
+
+    if(RelightConfigData_LevelPreset["Main"]["EnableDepthOfField"]) then
+        RELIGHT_DepthOfField_AddGameplayCameraName("cam_nav_classroomHallway");
+        RELIGHT_DepthOfField_AddGameplayCameraName("camAxis_cam_nav_classroomHallway");
+        RELIGHT_DepthOfField_AddGameplayCameraName("cam_nav_classroomHallway_depth");
+        RELIGHT_DepthOfField_AddGameplayCameraName("cam_nav_classroomHallwayCorner");
+        RELIGHT_DepthOfField_AddGameplayCameraName("camAxis_cam_nav_classroomHallwayCorner");
+        RELIGHT_DepthOfField_AddGameplayCameraName("cam_nav_classroomHallwayCorner_parent");
+        RELIGHT_DepthOfField_AddGameplayCameraName("cam_nav_schoolMainEntrance");
+        RELIGHT_DepthOfField_AddGameplayCameraName("camAxis_cam_nav_schoolMainEntrance");
+        RELIGHT_DepthOfField_AddGameplayCameraName("cam_nav_schoolMainEntrance_parent");
+        RELIGHT_DepthOfField_AddGameplayCameraName("cam_nav_fork");
+        RELIGHT_DepthOfField_AddGameplayCameraName("cam_nav_fork_parent");
+        RELIGHT_DepthOfField_AddGameplayCameraName("cam_nav_nursesOfficeHallway");
+        RELIGHT_DepthOfField_AddGameplayCameraName("cam_nav_nursesOfficeHallway_parent");
+        RELIGHT_DepthOfField_AddGameplayCameraName("cam_nav_alleywayExitHallway");
+        RELIGHT_DepthOfField_AddGameplayCameraName("camAxis_cam_nav_alleywayExitHallway");
+        RELIGHT_DepthOfField_AddGameplayCameraName("cam_nav_alleywayExitHallway_parent");
+        RELIGHT_DepthOfField_AddGameplayCameraName("cam_nav_alleywayExit");
+        RELIGHT_DepthOfField_AddGameplayCameraName("cam_nav_alleywayExit_parent");
+        RELIGHT_DepthOfField_AddGameplayCameraName("cam_nav_nursesOfficeHallway_parent_parent");
+        RELIGHT_DepthOfField_AddGameplayCameraName("cam_nav_nursesOfficeHallway_postZombies");
+        RELIGHT_DepthOfField_AddGameplayCameraName("cam_nav_nursesOfficeHallway_postZombies_parent");
+        RELIGHT_DepthOfField_AddGameplayCameraName("cam_nav_nursesOfficeHallway_postZombies_parent_parent");
+        RELIGHT_DepthOfField_AddGameplayCameraName("cam_nav_schoolMainEntrance_fuelMission");
+        RELIGHT_DepthOfField_AddGameplayCameraName("cam_nav_schoolMainEntrance_fuelMission_parent");
+        for _, string_name in ipairs(RELIGHT_DOF_AUTOFOCUS_ObjectEntries) do
+            RELIGHT_DepthOfField_AddFocusTarget(string_name);
+        end
+        RELIGHT_DepthOfField_Setup();
+
+        RELIGHT_DOF_AUTOFOCUS_Aperture = RelightConfigData_LevelPreset["Main"]["DepthOfFieldAperture"];
+    end
+
+    if(RelightConfigData_LevelPreset["Main"]["EnableVolumetricLighting"]) then
+        RELIGHT_HackyCameraVolumetrics_Initalize();
+    end
+
+    TLSE_SetPropertyOnAllCameras(RELIGHT_SceneObject, "Exposure", RelightConfigData_LevelPreset["Main"]["ExposureOffset"]);
+end
+
+--(DO NOT CHANGE FUNCTION NAME OR ADD PARAMETERS) Called every frame after the start of the level.
+RELIGHT_SceneUpdate = function()
+    if(RelightConfigData_LevelPreset["Main"]["EnableDepthOfField"]) then
+        RELIGHT_DepthOfField_Update();
+    end
+
+    if(RelightConfigData_LevelPreset["Main"]["EnableVolumetricLighting"]) then
+        RELIGHT_HackyCameraVolumetrics_Update();
+    end
+end
