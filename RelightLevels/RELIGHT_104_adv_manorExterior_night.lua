@@ -182,11 +182,11 @@ local RELIGHT_AUTO_Lights =
 
 local RELIGHT_AUTO_LightSettings =
 {
-    fire = { dimmer = 1.25, warm = 1.08, softness = 0.3 },
-    practical = { dimmer = 1.15, warm = 1.03, softness = 0.5 },
-    sun = { dimmer = 1.1, warm = 1.0, softness = 0.2 },
-    fill = { dimmer = 0.85, warm = 1.0, softness = 0.6 },
-    other = { dimmer = 1.0, warm = 1.0, softness = 0.5 },
+    fire = { dimmer = 1.25, warm = 1.08, softness = 0.3, specular = 1.2 },
+    practical = { dimmer = 1.15, warm = 1.03, softness = 0.5, specular = 1.15 },
+    sun = { dimmer = 1.1, warm = 1.0, softness = 0.2, specular = 1.0 },
+    fill = { dimmer = 0.85, warm = 1.0, softness = 0.6, specular = 1.0 },
+    other = { dimmer = 1.0, warm = 1.0, softness = 0.5, specular = 1.0 },
 };
 
 RELIGHT_ApplyLightingSettings = function(string_scene)
@@ -209,6 +209,11 @@ RELIGHT_ApplyLightingSettings = function(string_scene)
             local number_shadowType = AgentGetProperty(agent_light, "EnvLight - Shadow Type");
             if (number_shadowType ~= nil) and (number_shadowType ~= 0) then
                 AgentSetProperty(agent_light, "EnvLight - Shadow Softness", settings.softness);
+            end
+
+            local number_specular = AgentGetProperty(agent_light, "EnvLight - Intensity Specular");
+            if (number_specular ~= nil) and (settings.specular ~= 1.0) then
+                AgentSetProperty(agent_light, "EnvLight - Intensity Specular", number_specular * settings.specular);
             end
         end
     end

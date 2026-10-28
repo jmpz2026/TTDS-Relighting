@@ -58,7 +58,8 @@ def light_settings_table(space):
     for category, s in rules.LIGHT_SETTINGS.items():
         if space == "interior":
             s = {**s, **rules.INTERIOR_OVERRIDES.get(category, {})}
-        rows.append(f'    {category} = {{ dimmer = {s["dimmer"]}, warm = {s["warm"]}, softness = {s["softness"]} }},')
+        rows.append(f'    {category} = {{ dimmer = {s["dimmer"]}, warm = {s["warm"]}, softness = {s["softness"]}, '
+                    f'specular = {s["specular"]} }},')
     return "\n".join(rows)
 
 
@@ -129,6 +130,11 @@ RELIGHT_ApplyLightingSettings = function(string_scene)
             local number_shadowType = AgentGetProperty(agent_light, "EnvLight - Shadow Type");
             if (number_shadowType ~= nil) and (number_shadowType ~= 0) then
                 AgentSetProperty(agent_light, "EnvLight - Shadow Softness", settings.softness);
+            end
+
+            local number_specular = AgentGetProperty(agent_light, "EnvLight - Intensity Specular");
+            if (number_specular ~= nil) and (settings.specular ~= 1.0) then
+                AgentSetProperty(agent_light, "EnvLight - Intensity Specular", number_specular * settings.specular);
             end
         end
     end

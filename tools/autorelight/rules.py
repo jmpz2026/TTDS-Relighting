@@ -148,6 +148,9 @@ def sun_light(lights):
 # (character rigs and per-camera shadow casters are tuned by Telltale per shot).
 # dimmer: factor on "EnvLight - Intensity Dimmer"; warm: factor on red, inverse on blue;
 # softness: value for "EnvLight - Shadow Softness" (only on lights that already cast shadows).
+# specular: factor on "EnvLight - Intensity Specular" (shinier fire and practicals).
+# Shadow quality is left alone: shadow casters already ship with Shadow Quality 2 (high) and distance scale 10
+# (checked in game on 101 hershelFarmExterior and 201 clearingCampfire).
 LIGHT_RULES = [
     ("skip", re.compile(r"(?i)char|rig|shadowlight|lightrotation|_cam_?\d|bloodfx|fx_blood|dots")),
     ("fire", re.compile(r"(?i)fire|flame|candle|torch|campfire|burn|ember|lantern")),
@@ -156,11 +159,11 @@ LIGHT_RULES = [
     ("fill", re.compile(r"(?i)fill|ambient|bounce|_env_a|_env_p|_env_s")),
 ]
 LIGHT_SETTINGS = {
-    "fire": {"dimmer": 1.25, "warm": 1.08, "softness": 0.3},
-    "practical": {"dimmer": 1.15, "warm": 1.03, "softness": 0.5},
-    "sun": {"dimmer": 1.10, "warm": 1.0, "softness": 0.2},
-    "fill": {"dimmer": 0.85, "warm": 1.0, "softness": 0.6},
-    "other": {"dimmer": 1.0, "warm": 1.0, "softness": 0.5},
+    "fire": {"dimmer": 1.25, "warm": 1.08, "softness": 0.3, "specular": 1.2},
+    "practical": {"dimmer": 1.15, "warm": 1.03, "softness": 0.5, "specular": 1.15},
+    "sun": {"dimmer": 1.10, "warm": 1.0, "softness": 0.2, "specular": 1.0},
+    "fill": {"dimmer": 0.85, "warm": 1.0, "softness": 0.6, "specular": 1.0},
+    "other": {"dimmer": 1.0, "warm": 1.0, "softness": 0.5, "specular": 1.0},
 }
 # Interiors: sunlight through windows already blows out floors (101 clementineHouseInterior), keep it as is.
 INTERIOR_OVERRIDES = {"sun": {"dimmer": 1.0}}
