@@ -346,7 +346,10 @@ RELIGHT_DepthOfField_Setup = function()
         RenderSetFeatureEnabled("bokeh", true);
     end
 
-    if(RelightConfigGlobal["CinematicMode"] == true) then
+    --BokehShape (Main ini, Options > Relight): 0 auto (anamorphic with letterbox), 1 circle, 2 anamorphic.
+    local number_bokehShape = RelightConfigGlobal["BokehShape"] or 0;
+
+    if (number_bokehShape == 2) or ((number_bokehShape == 0) and (RelightConfigGlobal["CinematicMode"] == true)) then
         string_currentBokehTexture = "bokeh_anamorphic2.d3dtx";
     else
         string_currentBokehTexture = "bokeh_circle.d3dtx";

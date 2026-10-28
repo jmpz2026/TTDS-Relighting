@@ -34,6 +34,8 @@ RELIGHT_GenerateNewINI_Main = function(number_configurationVersion)
             EnableVolumetricLighting = true,
             --0 off, 1 low (24 planes), 2 medium (48), 3 high (96), 4 ultra (256, original look, slow).
             VolumetricQuality = 0,
+            --Depth of field bokeh: 0 auto (anamorphic with letterbox), 1 circle, 2 anamorphic.
+            BokehShape = 0,
             EnableColorGrading = true,
             EnableLensFlare = true,
         },

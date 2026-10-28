@@ -29,6 +29,7 @@ local mEffectEntries =
     { "VolumetricQuality", "Volumetric Lighting", { 0, 1, 2, 3, 4 }, { "Off", "Low", "Medium", "High", "Ultra (slow)" }, true },
     { "EnableDepthOfField", "Depth of Field Autofocus", ON_OFF, LABELS_ON_OFF },
     { "HighQualityDepthOfField", "High Quality Depth of Field", ON_OFF, LABELS_ON_OFF },
+    { "BokehShape", "Bokeh Shape", { 0, 1, 2 }, { "Auto", "Circle", "Anamorphic" }, true },
     { "EnableMotionBlur", "Motion Blur", ON_OFF, LABELS_ON_OFF },
 };
 
