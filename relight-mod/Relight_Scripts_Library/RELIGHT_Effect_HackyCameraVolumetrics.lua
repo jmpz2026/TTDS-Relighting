@@ -40,9 +40,22 @@ RELIGHT_HackyCameraVolumetrics_Settings =
     Samples = 256,
     SampleOffset = 0.05,
     SampleStartOffset = 1.0,
-    FogColor = Color(0.05, 0.05, 0.05, 0.05)
+    FogColor = Color(0.05, 0.05, 0.05, 0.05),
+
+    --Optional (performance). When Quality is set (1 low, 2 medium, 3 high), it replaces Samples/SampleOffset:
+    --fewer planes over the same Range, packed near the camera (SpacingPower > 1) and each one denser, so the
+    --total fog stays close to the 256 plane look. Quality 4 (or nil) is the original brute force setup.
+    Quality = 2,
+    Range = 12.8,          --meters covered by the planes (default Samples * SampleOffset)
+    SpacingPower = 1.6,    --1 = even spacing, higher = more planes near the camera
+    Jitter = 0.5,          --per frame random offset, in steps; temporal AA blends it and hides the banding
 };
 ]]--
+
+--Planes per quality level 1..3 (level 4 = the Samples value, 256 by default).
+local RELIGHT_HackyCameraVolumetrics_QualitySamples = { 24, 48, 96 };
+local number_jitterStep = 0;
+local number_jitterIndex = 0;
 
 local string_elementPropFile = "fx_glowWhite.prop" -- in 201 data
 local string_agentGroupName = "RELIGHT_CameraVolumetricsParentGroup";
@@ -52,9 +65,39 @@ local agent_group = nil;
 RELIGHT_HackyCameraVolumetrics_Initalize = function()
     agent_group = AgentCreate(string_agentGroupName, "group.prop", Vector(0, 0, 0), Vector(0, 0, 0), RELIGHT_SceneObject, false, false);
 
-    for index = 1, RELIGHT_HackyCameraVolumetrics_Settings.Samples, 1 do 
+    local settings = RELIGHT_HackyCameraVolumetrics_Settings;
+    local number_samples = settings.Samples;
+    local number_referenceOffset = settings.SampleOffset;
+    local number_range = number_samples * number_referenceOffset;
+    local number_power = 1.0;
+    local number_quality = settings.Quality;
 
-        local vector_currentPosition = Vector(0, 0, index * RELIGHT_HackyCameraVolumetrics_Settings.SampleOffset);
+    if (number_quality ~= nil) and (RELIGHT_HackyCameraVolumetrics_QualitySamples[number_quality] ~= nil) then
+        number_samples = RELIGHT_HackyCameraVolumetrics_QualitySamples[number_quality];
+        number_range = settings.Range or number_range;
+        number_power = settings.SpacingPower or 1.6;
+    end
+
+    number_jitterStep = (settings.Jitter or 0) * number_range / number_samples;
+    if (number_quality == nil) or (number_quality >= 4) then
+        number_jitterStep = 0;
+    end
+
+    local number_previousDistance = 0;
+
+    for index = 1, number_samples, 1 do
+        local number_distance = number_range * math.pow(index / number_samples, number_power);
+
+        --Each plane stands for the slab of fog in front of it: thicker slab = denser plane (1 at the original 0.05 step).
+        local number_density = (number_distance - number_previousDistance) / number_referenceOffset;
+        number_previousDistance = number_distance;
+        local color_fog = settings.FogColor;
+        --Same transmittance as number_density stacked planes: 1 - (1 - a)^density; color scaled with alpha.
+        local number_alpha = 1 - math.pow(1 - math.min(color_fog.a, 0.99), number_density);
+        local number_scale = number_alpha / math.max(color_fog.a, 0.0001);
+        local color_plane = Color(math.min(color_fog.r * number_scale, 1), math.min(color_fog.g * number_scale, 1), math.min(color_fog.b * number_scale, 1), number_alpha);
+
+        local vector_currentPosition = Vector(0, 0, number_distance);
         local vector_currentRotation = Vector(0, 180, 0);
 
         local string_currentElementAgentName = string_volumePlaneAgentName .. tostring(index);
@@ -64,7 +107,7 @@ RELIGHT_HackyCameraVolumetrics_Initalize = function()
         AgentSetProperty(agent_currentElement, "Render Global Scale", 1000.0);
         AgentSetProperty(agent_currentElement, "Render Cull", false);
         AgentSetProperty(agent_currentElement, "Render Layer", 25);
-        AgentSetProperty(agent_currentElement, "Render Diffuse Color", RELIGHT_HackyCameraVolumetrics_Settings.FogColor);
+        AgentSetProperty(agent_currentElement, "Render Diffuse Color", color_plane);
         AgentSetProperty(agent_currentElement, "Render Constant Alpha Multiply", 1);
         AgentSetProperty(agent_currentElement, "Render After Anti-Aliasing", false);
         AgentSetProperty(agent_currentElement, "Render EnvLight Shadow Cast Enable", false);
@@ -84,7 +127,7 @@ RELIGHT_HackyCameraVolumetrics_Initalize = function()
         AgentSetProperty(agent_currentElement, "Render Shadow Force Visible", false);
         AgentSetProperty(agent_currentElement, "Render Enlighten Force Visible", false);
         AgentSetProperty(agent_currentElement, "fx_glowWhite - Texture", "color_fFFFFF");
-        AgentSetProperty(agent_currentElement, "fx_glowWhite - Light Color Diffuse", RELIGHT_HackyCameraVolumetrics_Settings.FogColor);
+        AgentSetProperty(agent_currentElement, "fx_glowWhite - Light Color Diffuse", color_plane);
 
         AgentAttach(agent_currentElement, agent_group);
     end
@@ -96,7 +139,11 @@ RELIGHT_HackyCameraVolumetrics_Update = function()
     local vector_currentCameraForward = AgentGetForwardVec(agent_currentCamera); --Vector type
     local vector_currentCameraRotation = AgentGetWorldRot(agent_currentCamera); --Vector type
 
-    local vector_volumetricGroupPosition = VectorAdd(vector_currentCameraPosition, VectorScale(vector_currentCameraForward, RELIGHT_HackyCameraVolumetrics_Settings.SampleStartOffset));
+    --Golden ratio sequence: a different offset inside one step every frame, evenly spread over time.
+    number_jitterIndex = (number_jitterIndex + 1) % 1000;
+    local number_jitter = ((number_jitterIndex * 0.618034) % 1.0) * number_jitterStep;
+
+    local vector_volumetricGroupPosition = VectorAdd(vector_currentCameraPosition, VectorScale(vector_currentCameraForward, RELIGHT_HackyCameraVolumetrics_Settings.SampleStartOffset + number_jitter));
 
     AgentSetWorldPos(agent_group, vector_volumetricGroupPosition);
     AgentSetRot(agent_group, vector_currentCameraRotation);

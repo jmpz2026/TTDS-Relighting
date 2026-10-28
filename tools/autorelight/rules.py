@@ -112,6 +112,10 @@ PRESETS = {
     ("exterior", "dark"): (PRESET_DARK_EXTERIOR, "Color(0.03, 0.03, 0.03, 0.03)", 2.0),
 }
 
+# Volumetric planes cover this many meters in front of the camera (fewer planes, see VolumetricQuality).
+# Interiors rarely see past a few meters; the depth test hides planes behind walls anyway.
+VOLUMETRIC_RANGE = {"interior": 6.0, "exterior": 16.0}
+
 # time -> (FX Color Tint, FX Color Opacity, FX Levels Black Point). Applied only when color grading is on.
 # Most scenes already have their own FX Color tint: the generated Lua blends that tint halfway to this one
 # and keeps the higher opacity, so the original art direction stays.

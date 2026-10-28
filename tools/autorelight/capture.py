@@ -29,7 +29,7 @@ CAPTURE_PS1 = TOOLS / "capture_window.ps1"
 OUT = TOOLS / "captures"
 
 MAIN_INI = GAME / "RelightMod" / "RelightConfiguration_Main.ini"
-CONFIG_VERSION = 101  # RELIGHT_CurrentConfigurationVersion
+CONFIG_VERSION = 102  # RELIGHT_CurrentConfigurationVersion
 INI_OFF = ("[Main]\nExposureOffset=0\nEnableRelighting=false\nEnableDepthOfField=false\nEnableVolumetricLighting=false\n"
            "EnableColorGrading=false\nEnableLensFlare=false\n"
            "DepthOfFieldAperture=2.8\n\n[Version]\nConfigurationVersion={version}\n").format(version=CONFIG_VERSION)

@@ -194,6 +194,7 @@ RELIGHT_DOF_AUTOFOCUS_BokehSettings =
 --Relight Lens Flare (only used when the scene has a sun light: light_ENV_sunKey)
 local RELIGHT_AUTO_SunLight = "light_ENV_sunKey";
 local RELIGHT_AUTO_LensFlareActive = false;
+local RELIGHT_AUTO_VolumetricsActive = false;
 
 --Relight Volumetrics
 RELIGHT_HackyCameraVolumetrics_Settings =
@@ -201,7 +202,11 @@ RELIGHT_HackyCameraVolumetrics_Settings =
     Samples = 256,
     SampleOffset = 0.05,
     SampleStartOffset = 1.0,
-    FogColor = Color(0.05, 0.05, 0.05, 0.05)
+    FogColor = Color(0.05, 0.05, 0.05, 0.05),
+    Quality = 2,
+    Range = 16.0,
+    SpacingPower = 1.6,
+    Jitter = 0.5,
 };
 
 --|||||||||||||||||||||||||||||||||||||||||||||||| RELIGHT SCENE CONFIGURATION INI ||||||||||||||||||||||||||||||||||||||||||||||||
@@ -281,7 +286,11 @@ RELIGHT_SceneStart = function()
         RELIGHT_DOF_AUTOFOCUS_Aperture = RelightConfigData_LevelPreset["Main"]["DepthOfFieldAperture"];
     end
 
-    if RELIGHT_AUTO_Enabled("EnableVolumetricLighting") then
+    --VolumetricQuality (Main ini, Options > Relight): 0 off, 1 low, 2 medium, 3 high, 4 ultra (original 256 planes).
+    RELIGHT_HackyCameraVolumetrics_Settings.Quality = RelightConfigGlobal["VolumetricQuality"] or 0;
+    RELIGHT_AUTO_VolumetricsActive = RELIGHT_AUTO_Enabled("EnableVolumetricLighting") and (RELIGHT_HackyCameraVolumetrics_Settings.Quality > 0);
+
+    if RELIGHT_AUTO_VolumetricsActive then
         RELIGHT_HackyCameraVolumetrics_Initalize();
     end
 
@@ -294,7 +303,7 @@ RELIGHT_SceneUpdate = function()
         RELIGHT_DepthOfField_Update();
     end
 
-    if RELIGHT_AUTO_Enabled("EnableVolumetricLighting") then
+    if RELIGHT_AUTO_VolumetricsActive then
         RELIGHT_HackyCameraVolumetrics_Update();
     end
 

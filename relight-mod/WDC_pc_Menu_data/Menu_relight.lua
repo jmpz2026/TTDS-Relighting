@@ -10,7 +10,7 @@ require("Menu_ListMenu.lua")
 require("UI_ListButton.lua")
 
 --Keep equal to RELIGHT_CurrentConfigurationVersion in RELIGHT_RelightingConfiguration.lua.
-local RELIGHT_MENU_ConfigurationVersion = 101;
+local RELIGHT_MENU_ConfigurationVersion = 102;
 local RELIGHT_MENU_ConfigFileName = "RelightMod/RelightConfiguration_Main.ini";
 
 local mbLibrariesLoaded = pcall(require, "TLSE_INI.lua") and pcall(require, "RELIGHT_RelightingConfiguration_Main.lua");
@@ -26,7 +26,7 @@ local mEffectEntries =
     { "EnableRelighting", "Relighting", ON_OFF, LABELS_ON_OFF },
     { "EnableColorGrading", "Color Grading", ON_OFF, LABELS_ON_OFF },
     { "EnableLensFlare", "Lens Flare", ON_OFF, LABELS_ON_OFF },
-    { "EnableVolumetricLighting", "Volumetric Lighting (slow)", ON_OFF, LABELS_ON_OFF },
+    { "VolumetricQuality", "Volumetric Lighting", { 0, 1, 2, 3, 4 }, { "Off", "Low", "Medium", "High", "Ultra (slow)" }, true },
     { "EnableDepthOfField", "Depth of Field Autofocus", ON_OFF, LABELS_ON_OFF },
     { "HighQualityDepthOfField", "High Quality Depth of Field", ON_OFF, LABELS_ON_OFF },
     { "EnableMotionBlur", "Motion Blur", ON_OFF, LABELS_ON_OFF },
