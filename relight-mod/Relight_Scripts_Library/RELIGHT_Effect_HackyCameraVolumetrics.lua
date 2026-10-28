@@ -48,7 +48,8 @@ RELIGHT_HackyCameraVolumetrics_Settings =
     Quality = 2,
     Range = 12.8,          --meters covered by the planes (default Samples * SampleOffset)
     SpacingPower = 1.6,    --1 = even spacing, higher = more planes near the camera
-    Jitter = 0.5,          --per frame random offset, in steps; temporal AA blends it and hides the banding
+    ColorExponent = 0.55,  --plane color grows by (alpha ratio)^this; 1 = linear, too bright (blooms, halos), 0 = too weak
+    Jitter = 0,            --per frame offset, in steps (temporal AA blends it); off by default, no banding seen without it
 };
 ]]--
 
@@ -92,9 +93,10 @@ RELIGHT_HackyCameraVolumetrics_Initalize = function()
         local number_density = (number_distance - number_previousDistance) / number_referenceOffset;
         number_previousDistance = number_distance;
         local color_fog = settings.FogColor;
-        --Same transmittance as number_density stacked planes: 1 - (1 - a)^density; color scaled with alpha.
+        --Alpha: same transmittance as number_density stacked planes, 1 - (1 - a)^density.
+        --Color: scaled less than alpha (ColorExponent); a linear scale makes each plane bright enough to bloom.
         local number_alpha = 1 - math.pow(1 - math.min(color_fog.a, 0.99), number_density);
-        local number_scale = number_alpha / math.max(color_fog.a, 0.0001);
+        local number_scale = math.pow(number_alpha / math.max(color_fog.a, 0.0001), settings.ColorExponent or 0.55);
         local color_plane = Color(math.min(color_fog.r * number_scale, 1), math.min(color_fog.g * number_scale, 1), math.min(color_fog.b * number_scale, 1), number_alpha);
 
         local vector_currentPosition = Vector(0, 0, number_distance);

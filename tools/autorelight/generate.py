@@ -178,7 +178,8 @@ RELIGHT_HackyCameraVolumetrics_Settings =
     Quality = 2,
     Range = {vol_range},
     SpacingPower = 1.6,
-    Jitter = 0.5,
+    ColorExponent = 0.55,
+    Jitter = 0,
 }};
 
 --|||||||||||||||||||||||||||||||||||||||||||||||| RELIGHT SCENE CONFIGURATION INI ||||||||||||||||||||||||||||||||||||||||||||||||

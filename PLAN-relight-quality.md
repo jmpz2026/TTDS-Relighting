@@ -80,8 +80,9 @@ Goal: better lights, shadows, color, skies; fewer broken scenes, with no hand-tu
 - In-game tests only when user says. Back up saves before each batch.
 
 ## Next step
-User: build + install step 0 and measure FPS (PresentMon) per quality level. Then step 1 (lights and shadows).
+Optional: tune Low exterior and interior High. Then step 1 (lights and shadows).
 
 ## Bitácora
 - 2026-10-27: Plan approved (all four areas, local texture spike, volumetrics performance first). Started step 0.
 - 2026-10-27: Step 0 code done. Effect: Quality 1-3 = 24/48/96 planes over Range, spacing power 1.6, per-plane alpha 1-(1-a)^density (same transmittance), golden-ratio jitter per frame; Quality 4/nil = original 256. Range interior 6 m, exterior 16 m (rules.VOLUMETRIC_RANGE). Main ini VolumetricQuality (default 0 = off, keeps the earlier OFF decision until FPS is measured), EnableVolumetricLighting global now true (hidden master). Menu row = quality selector. Config version 101 -> 102. 267 regenerated, check 0 problems. Not installed yet.
+- 2026-10-28: Step 0 measured in game (2560x1440, FPS probe in Lua, game capped ~180). Interior/exterior avg FPS: no volumetrics 180/180, Low 163/178, Medium 113/133, High 70/86, Ultra 76/49. First build (color scaled linearly with alpha) gave too strong fog, beige haze and white halos (bloom), not caused by jitter. Fix: color scaled by (alpha ratio)^0.55 (ColorExponent), Jitter default 0. Subagent review: Medium and High close to Ultra, no halos/banding; Low OK interior, too strong/olive in exterior. Interior High costs more than Ultra (all 96 planes inside 6 m, Ultra planes mostly behind walls). Default stays Off. Pending: Low exterior tone-down, fewer planes for interior High.
