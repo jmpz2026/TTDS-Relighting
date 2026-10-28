@@ -114,7 +114,12 @@ PRESETS = {
 
 # Volumetric planes cover this many meters in front of the camera (fewer planes, see VolumetricQuality).
 # Interiors rarely see past a few meters; the depth test hides planes behind walls anyway.
-VOLUMETRIC_RANGE = {"interior": 6.0, "exterior": 16.0}
+# Planes and color exponent per quality level (low, medium, high). Interiors: every plane sits in front of the walls,
+# so 96 planes cost more than the original 256; exteriors: few planes over 16 m need a lower exponent (Low was olive).
+VOLUMETRIC = {
+    "interior": {"range": 6.0, "samples": (24, 48, 64), "exponent": (0.55, 0.55, 0.55)},
+    "exterior": {"range": 16.0, "samples": (24, 48, 96), "exponent": (0.42, 0.55, 0.55)},
+}
 
 # time -> (FX Color Tint, FX Color Opacity, FX Levels Black Point). Applied only when color grading is on.
 # Most scenes already have their own FX Color tint: the generated Lua blends that tint halfway to this one

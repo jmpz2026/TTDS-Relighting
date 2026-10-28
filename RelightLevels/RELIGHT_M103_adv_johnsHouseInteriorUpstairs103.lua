@@ -275,7 +275,8 @@ RELIGHT_HackyCameraVolumetrics_Settings =
     Quality = 2,
     Range = 6.0,
     SpacingPower = 1.6,
-    ColorExponent = 0.55,
+    ColorExponent = { 0.55, 0.55, 0.55 },
+    QualitySamples = { 24, 48, 64 },
     Jitter = 0,
 };
 

@@ -30,6 +30,10 @@ def lua_string_list(items, indent="    "):
     return "\n".join(f'{indent}"{item}",' for item in items)
 
 
+def lua_table(values):
+    return "{ " + ", ".join(str(v) for v in values) + " }"
+
+
 def lua_bool(value):
     return "true" if value else "false"
 
@@ -178,7 +182,8 @@ RELIGHT_HackyCameraVolumetrics_Settings =
     Quality = 2,
     Range = {vol_range},
     SpacingPower = 1.6,
-    ColorExponent = 0.55,
+    ColorExponent = {vol_exponent},
+    QualitySamples = {vol_samples},
     Jitter = 0,
 }};
 
@@ -310,7 +315,8 @@ def render(record, cls):
         scene_settings=scene_settings(preset), lights=light_table(record["lights"] + [
             a for a in record["agents"] if "lightshape" in a.lower() and a not in record["lights"]]),
         light_settings=light_settings_table(space), aperture=aperture, characters=lua_string_list(characters),
-        fog_color=fog_color, vol_range=rules.VOLUMETRIC_RANGE[space], ini_name=f"{stem}.ini", dof_cameras=dof_cameras,
+        fog_color=fog_color, vol_range=rules.VOLUMETRIC[space]["range"],
+        vol_samples=lua_table(rules.VOLUMETRIC[space]["samples"]), vol_exponent=lua_table(rules.VOLUMETRIC[space]["exponent"]), ini_name=f"{stem}.ini", dof_cameras=dof_cameras,
     )
 
 

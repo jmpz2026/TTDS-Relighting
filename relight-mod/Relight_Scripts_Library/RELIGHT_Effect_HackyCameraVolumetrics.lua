@@ -48,7 +48,9 @@ RELIGHT_HackyCameraVolumetrics_Settings =
     Quality = 2,
     Range = 12.8,          --meters covered by the planes (default Samples * SampleOffset)
     SpacingPower = 1.6,    --1 = even spacing, higher = more planes near the camera
-    ColorExponent = 0.55,  --plane color grows by (alpha ratio)^this; 1 = linear, too bright (blooms, halos), 0 = too weak
+    ColorExponent = 0.55,  --plane color grows by (alpha ratio)^this; 1 = linear, too bright (blooms, halos), 0 = too weak.
+                           --A number, or a table per quality level { low, medium, high }.
+    QualitySamples = nil,  --optional planes per quality level { low, medium, high }, default { 24, 48, 96 }
     Jitter = 0,            --per frame offset, in steps (temporal AA blends it); off by default, no banding seen without it
 };
 ]]--
@@ -73,10 +75,17 @@ RELIGHT_HackyCameraVolumetrics_Initalize = function()
     local number_power = 1.0;
     local number_quality = settings.Quality;
 
-    if (number_quality ~= nil) and (RELIGHT_HackyCameraVolumetrics_QualitySamples[number_quality] ~= nil) then
-        number_samples = RELIGHT_HackyCameraVolumetrics_QualitySamples[number_quality];
+    local table_qualitySamples = settings.QualitySamples or RELIGHT_HackyCameraVolumetrics_QualitySamples;
+    local number_exponent = settings.ColorExponent or 0.55;
+
+    if (number_quality ~= nil) and (table_qualitySamples[number_quality] ~= nil) then
+        number_samples = table_qualitySamples[number_quality];
         number_range = settings.Range or number_range;
         number_power = settings.SpacingPower or 1.6;
+    end
+
+    if type(number_exponent) == "table" then
+        number_exponent = number_exponent[number_quality] or 0.55;
     end
 
     number_jitterStep = (settings.Jitter or 0) * number_range / number_samples;
@@ -96,7 +105,7 @@ RELIGHT_HackyCameraVolumetrics_Initalize = function()
         --Alpha: same transmittance as number_density stacked planes, 1 - (1 - a)^density.
         --Color: scaled less than alpha (ColorExponent); a linear scale makes each plane bright enough to bloom.
         local number_alpha = 1 - math.pow(1 - math.min(color_fog.a, 0.99), number_density);
-        local number_scale = math.pow(number_alpha / math.max(color_fog.a, 0.0001), settings.ColorExponent or 0.55);
+        local number_scale = math.pow(number_alpha / math.max(color_fog.a, 0.0001), number_exponent);
         local color_plane = Color(math.min(color_fog.r * number_scale, 1), math.min(color_fog.g * number_scale, 1), math.min(color_fog.b * number_scale, 1), number_alpha);
 
         local vector_currentPosition = Vector(0, 0, number_distance);
