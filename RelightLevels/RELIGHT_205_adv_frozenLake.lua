@@ -57,6 +57,24 @@ RELIGHT_AUTO_ApplyColorGrading = function(agent_sceneAgent)
     AgentSetProperty(agent_sceneAgent, "FX Levels Black Point", 0.0);
 end
 
+--Per-scene brightness from calibrate.py (scene_classes.csv white_factor): factor on the levels white point,
+--below 1 = brighter (crushed scenes), above 1 = darker (clipped scenes).
+RELIGHT_AUTO_ApplyCalibration = function(agent_sceneAgent)
+    local number_factor = 1.0;
+    if number_factor == 1.0 then
+        return;
+    end
+
+    --Low-light presets keep the scene levels, which may be off: turn them on neutral (white 1) first.
+    if AgentGetProperty(agent_sceneAgent, "FX Levels Enabled") ~= true then
+        AgentSetProperty(agent_sceneAgent, "FX Levels Enabled", true);
+        AgentSetProperty(agent_sceneAgent, "FX Levels White Point", 1.0);
+    end
+
+    local number_white = AgentGetProperty(agent_sceneAgent, "FX Levels White Point") or 1.0;
+    AgentSetProperty(agent_sceneAgent, "FX Levels White Point", number_white * number_factor);
+end
+
 --Fog stays as the original scene has it.
 RELIGHT_ApplyEnvironmentFogSettings = function(string_scene) end
 
@@ -286,6 +304,7 @@ end
 RELIGHT_SceneStart = function()
     if RELIGHT_AUTO_Enabled("EnableRelighting") then
         RELIGHT_ApplySceneSettings(RELIGHT_SceneObjectAgentName);
+        RELIGHT_AUTO_ApplyCalibration(RELIGHT_SceneObjectAgentName);
         RELIGHT_ApplyEnvironmentFogSettings(RELIGHT_SceneObject);
         RELIGHT_ApplyLightingSettings(RELIGHT_SceneObject);
 

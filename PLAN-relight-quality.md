@@ -80,7 +80,7 @@ Goal: better lights, shadows, color, skies; fewer broken scenes, with no hand-tu
 - In-game tests only when user says. Back up saves before each batch.
 
 ## Next step
-Step 2 (per-channel RGB grading).
+Step 3: fresh ON captures of the 10 scenes with vanilla captures, calibrate.py --apply, regenerate, recapture flagged.
 
 ## Bitácora
 - 2026-10-27: Plan approved (all four areas, local texture spike, volumetrics performance first). Started step 0.
@@ -88,3 +88,5 @@ Step 2 (per-channel RGB grading).
 - 2026-10-28: Step 0 measured in game (2560x1440, FPS probe in Lua, game capped ~180). Interior/exterior avg FPS: no volumetrics 180/180, Low 163/178, Medium 113/133, High 70/86, Ultra 76/49. First build (color scaled linearly with alpha) gave too strong fog, beige haze and white halos (bloom), not caused by jitter. Fix: color scaled by (alpha ratio)^0.55 (ColorExponent), Jitter default 0. Subagent review: Medium and High close to Ultra, no halos/banding; Low OK interior, too strong/olive in exterior. Interior High costs more than Ultra (all 96 planes inside 6 m, Ultra planes mostly behind walls). Default stays Off. Pending: Low exterior tone-down, fewer planes for interior High.
 - 2026-10-28: Volumetrics tuned per space (rules.VOLUMETRIC): interior High 64 planes (70 -> 97 FPS, now faster than Ultra 76), exterior Low exponent 0.42 (no olive cast, 178 FPS). Subagent: acceptable. Started step 1.
 - 2026-10-28: Step 1 done, reduced. In-game diag: shadow casters already ship with Shadow Quality 2 and distance scale 10, so the quality/distance rules were a no-op (captures identical, FPS identical): removed with their menu toggle. Kept light specular (fire x1.2, practical x1.15). Wrap/Enlighten skipped (hand files use negative Enlighten values, meaning unclear). Next: step 2 (RGB grading).
+- 2026-10-28: Step 2 dropped after in-game tests. FX Tonemap RGB with its defaults is neutral; per-channel white points shift the whole channel (only a second global tint, ~1% at safe values), black points unstable (+0.008 blue crushed 204 civilWarMemorialCenterMorning shadows 15 -> 5), toe/shoulder no visible effect. Flat FX Color tint stays.
+- 2026-10-28: Step 3 code: calibrate.py (ON vs vanilla OFF capture: crushed/clipped increase -> white_factor 0.9 / 1.08, clamp 0.8-1.25; absolute rule without vanilla), white_factor CSV column kept by classify.py, generated RELIGHT_AUTO_ApplyCalibration (turns scene levels on neutral if off). Next: fresh ON captures, calibrate --apply, regenerate, recapture flagged.

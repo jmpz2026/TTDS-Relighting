@@ -11,7 +11,7 @@ from pathlib import Path
 
 DATA = Path(__file__).resolve().parent / "data"
 CSV_PATH = DATA / "scene_classes.csv"
-FIELDS = ["lua_file", "episode", "scene", "space", "time", "lights", "override_space", "override_time"]
+FIELDS = ["lua_file", "episode", "scene", "space", "time", "lights", "override_space", "override_time", "white_factor"]
 
 INTERIOR_WORDS = ["interior", "office", "basement", "attic", "room", "locker", "inside", "kitchen", "bedroom",
                   "cabin", "barn", "store", "shed", "cellar", "train", "boxcar", "car", "bus", "sewer", "lodge",
@@ -74,6 +74,7 @@ def main():
             "lights": len(rec["lights"]),
             "override_space": prev.get("override_space", ""),
             "override_time": prev.get("override_time", ""),
+            "white_factor": prev.get("white_factor", ""),
         })
     with CSV_PATH.open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=FIELDS)

@@ -121,6 +121,9 @@ VOLUMETRIC = {
     "exterior": {"range": 16.0, "samples": (24, 48, 96), "exponent": (0.42, 0.55, 0.55)},
 }
 
+# Per-channel tonemap (FX Tonemap RGB) was tested for split toning and dropped: white points shift the whole channel
+# (a second global tint), black points are unstable (+0.008 crushed blue in 204 civilWarMemorialCenterMorning).
+
 # time -> (FX Color Tint, FX Color Opacity, FX Levels Black Point). Applied only when color grading is on.
 # Most scenes already have their own FX Color tint: the generated Lua blends that tint halfway to this one
 # and keeps the higher opacity, so the original art direction stays.

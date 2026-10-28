@@ -95,6 +95,24 @@ RELIGHT_AUTO_ApplyColorGrading = function(agent_sceneAgent)
     AgentSetProperty(agent_sceneAgent, "FX Levels Black Point", {grade_black});
 end
 
+--Per-scene brightness from calibrate.py (scene_classes.csv white_factor): factor on the levels white point,
+--below 1 = brighter (crushed scenes), above 1 = darker (clipped scenes).
+RELIGHT_AUTO_ApplyCalibration = function(agent_sceneAgent)
+    local number_factor = {white_factor};
+    if number_factor == 1.0 then
+        return;
+    end
+
+    --Low-light presets keep the scene levels, which may be off: turn them on neutral (white 1) first.
+    if AgentGetProperty(agent_sceneAgent, "FX Levels Enabled") ~= true then
+        AgentSetProperty(agent_sceneAgent, "FX Levels Enabled", true);
+        AgentSetProperty(agent_sceneAgent, "FX Levels White Point", 1.0);
+    end
+
+    local number_white = AgentGetProperty(agent_sceneAgent, "FX Levels White Point") or 1.0;
+    AgentSetProperty(agent_sceneAgent, "FX Levels White Point", number_white * number_factor);
+end
+
 --Fog stays as the original scene has it.
 RELIGHT_ApplyEnvironmentFogSettings = function(string_scene) end
 
@@ -244,6 +262,7 @@ end
 RELIGHT_SceneStart = function()
     if RELIGHT_AUTO_Enabled("EnableRelighting") then
         RELIGHT_ApplySceneSettings(RELIGHT_SceneObjectAgentName);
+        RELIGHT_AUTO_ApplyCalibration(RELIGHT_SceneObjectAgentName);
         RELIGHT_ApplyEnvironmentFogSettings(RELIGHT_SceneObject);
         RELIGHT_ApplyLightingSettings(RELIGHT_SceneObject);
 
@@ -315,7 +334,7 @@ def render(record, cls):
     grade_tint, grade_opacity, grade_black = rules.GRADING[time]
     sun = rules.sun_light(record["lights"]) if space == "exterior" and time in rules.LENS_FLARE_TIMES else None
     return TEMPLATE.format(
-        grade_tint=grade_tint, grade_opacity=grade_opacity, grade_black=grade_black,
+        white_factor=float(cls.get("white_factor") or 1.0), grade_tint=grade_tint, grade_opacity=grade_opacity, grade_black=grade_black,
         sun_light=sun or "none", sun_lua=f'"{sun}"' if sun else "nil", lens_flare=lua_bool(sun is not None),
         marker=AUTO_MARKER, scene=record["scene"], space=space, time=time,
         scene_settings=scene_settings(preset), lights=light_table(record["lights"] + [
